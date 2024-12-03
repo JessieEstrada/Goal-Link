@@ -14,15 +14,19 @@ class CustomUser(AbstractUser):
     bio = models.TextField(blank=True)
     achievements = models.TextField(blank=True)
     positions_played = models.JSONField(default=list, blank=True)
-
+    
+    
     def __str__(self):
         return self.username
-    
+
 class Team(models.Model):
     name = models.CharField(max_length=100)
     owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='owned_teams')  
     date_founded = models.DateField(null=True, blank=True)
     members = models.ManyToManyField(CustomUser, related_name='teams')
+    description = models.TextField(blank=True)
+    location = models.CharField(max_length=255, blank=True)
+    home_field = models.CharField(max_length=255, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True)  
 
     def save(self, *args, **kwargs):
@@ -41,3 +45,15 @@ class TeamMembership(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.team.name} ({self.role})"
+
+class Match(models.Model):
+    team1 = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='home_matches')
+    team2 = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='away_matches')
+    date = models.DateField()
+    time = models.TimeField()
+    location = models.CharField(max_length=255)
+    result = models.CharField(max_length=50, default="TBD")
+    created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='created_matches')
+
+    def __str__(self):
+        return f"{self.team1.name} vs {self.team2.name} on {self.date}"
